@@ -51,8 +51,5 @@ public:
 	bool exec() const final override;
 
 private:
-	static void printSeparator(bool& f_ioFirstFlag);
-
-private:
 	FieldsMask m_fields;
 };

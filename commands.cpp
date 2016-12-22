@@ -7,14 +7,17 @@
 #include "common.h"
 
 
+// ====================================
+static const uint s_captionWidth = 16;
 
-void CmdInfo::printSeparator(bool& f_ioFirstFlag)
-{
-	if(f_ioFirstFlag)
-		f_ioFirstFlag = false;
-	else
-		LOG("===");
-}
+using tag_frame_count_getter_t  = unsigned              (Tag::IID3v2::*)() const;
+using tag_frame_getter_t        = const std::string&    (Tag::IID3v2::*)(unsigned f_index) const;
+using tag_genre_index_getter_t  = int                   (Tag::IID3v2::*)(unsigned f_index) const;
+
+static void printSeparator(bool& f_ioFirstFlag);
+static std::string makeAlignedCaption(uint f_width, const std::string& f_name, int f_index = -1);
+static void printFrames(const std::string& f_name, const Tag::IID3v2& f_tag, tag_frame_count_getter_t f_pfnCount, tag_frame_getter_t f_pfnGetter, tag_genre_index_getter_t f_pfnGenreIndex);
+
 
 bool CmdInfo::exec() const
 {
@@ -114,22 +117,40 @@ LOG(std::endl << ">>> " << m_pathIn);
 			LOG("ID3v2." << tag->getMinorVersion() << '.' << tag->getRevision() << " tag @ offset " <<
 				offset << " (0x" << OUT_HEX(offset) << ") +" << size << " (0x" << OUT_HEX(size) << ')');
 
-			LOG("Track          : " << tag->getTrack		());
-			LOG("Disc           : " << tag->getDisc			());
-			LOG("BPM            : " << tag->getBPM			());
-			LOG("Title          : " << tag->getTitle		());
-			LOG("Artist         : " << tag->getArtist		());
-			LOG("Album          : " << tag->getAlbum		());
-			LOG("Album Artist   : " << tag->getAlbum		());
-			LOG("Year           : " << tag->getYear			());
-			LOG("Genre          : " << tag->getGenre		() << " (" << tag->getGenreIndex() << ")");
-			LOG("Comment        : " << tag->getComment		());
-			LOG("Composer       : " << tag->getComposer		());
-			LOG("Publisher      : " << tag->getPublisher	());
-			LOG("Original Artist: " << tag->getOrigArtist	());
-			LOG("Copyright      : " << tag->getCopyright	());
-			LOG("URL            : " << tag->getURL			());
-			LOG("Encoded        : " << tag->getEncoded		());
+			#define PRINT_FRAMES(Title, Name, ExFn)	printFrames(Title, *tag, &Tag::IID3v2::get##Name##Count, &Tag::IID3v2::get##Name, ExFn)
+			#define PRINT_EX(Title, Name)           PRINT_FRAMES(Title, Name, nullptr)
+			#define PRINT(Name)						PRINT_EX(#Name, Name)
+			PRINT		(Track);
+			PRINT		(Disc);
+			PRINT		(BPM);
+			PRINT		(Title);
+			PRINT		(Artist);
+			PRINT		(Album);
+			PRINT_EX	("Album Artist", AlbumArtist);
+			PRINT		(Year);
+			PRINT_FRAMES("Genre", Genre, &Tag::IID3v2::getGenreIndex);
+			PRINT		(Comment);
+			PRINT		(Composer);
+			PRINT		(Publisher);
+			PRINT_EX	("Original Artist", OrigArtist);
+			PRINT		(Copyright);
+			PRINT		(URL);
+			PRINT		(Encoded);
+			#undef PRINT
+			#undef PRINT_EX
+			#undef PRINT_FRAMES
+
+			// Print unsupported frames
+			auto unknown_frames = tag->getUnknownFrames();
+			if(!unknown_frames.empty())
+			{
+				makeAlignedCaption(s_captionWidth, "Unknown frames");
+				for_each(unknown_frames.begin(), unknown_frames.end(), [](auto& str)
+				{
+					std::cout << " " << str;
+				});
+				std::cout << std::endl;
+			}
 		}
 		else if(mask & FieldsMask::ID3v2)
 		{
@@ -186,6 +207,56 @@ LOG(std::endl << ">>> " << m_pathIn);
 }
 
 
+static void printSeparator(bool& f_ioFirstFlag)
+{
+	if(f_ioFirstFlag)
+		f_ioFirstFlag = false;
+	else
+		LOG("===");
+}
+
+
+static std::string makeAlignedCaption(uint f_width, const std::string& f_name, int f_index)
+{
+	auto str = f_name;
+	if(f_index >= 0)
+		str = str + '(' + std::to_string(f_index) + ')';
+
+	auto n = f_width - str.length();
+	if(n > 0)
+		str.append(n, ' ');
+	str.append(1, ':');
+
+	return str;
+}
+
+static void printFrames(const std::string& f_name, const Tag::IID3v2& f_tag, tag_frame_count_getter_t f_pfnCount, tag_frame_getter_t f_pfnGetter, tag_genre_index_getter_t f_pfnGenreIndex)
+{
+	auto nTags = (f_tag.*f_pfnCount)();
+	if(nTags < 2)
+	{
+		auto caption = makeAlignedCaption(s_captionWidth, f_name);
+		if(nTags)
+		{
+			caption = caption + ' ' + (f_tag.*f_pfnGetter)(0);
+			if(f_pfnGenreIndex)
+				caption = caption + " (" + std::to_string((f_tag.*f_pfnGenreIndex)(0)) + ')';
+		}
+		LOG(caption);
+	}
+	else
+	{
+		for(unsigned i = 0; i < nTags; ++i)
+		{
+			auto caption = makeAlignedCaption(s_captionWidth, f_name, i) + ' ' + (f_tag.*f_pfnGetter)(i);
+			if(f_pfnGenreIndex)
+				caption = caption + " (" + std::to_string((f_tag.*f_pfnGenreIndex)(i)) + ')';
+			LOG(caption);
+		}
+	}
+}
+
+// ====================================
 bool CmdHelp::exec() const
 {
 	static const char* s_name = "mp3_cut";
