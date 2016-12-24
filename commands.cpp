@@ -37,7 +37,7 @@ LOG(std::endl << ">>> " << m_pathIn);
 	//	return false;
 	//}
 
-	if(mp3->hasWarnings())
+	if(mp3->hasIssues())
 		WARNING("the \"" << m_pathIn << "\" has issues");
 
 	//ASSERT(m_fields != FieldsMask::None);
@@ -144,7 +144,7 @@ LOG(std::endl << ">>> " << m_pathIn);
 			auto unknown_frames = tag->getUnknownFrames();
 			if(!unknown_frames.empty())
 			{
-				makeAlignedCaption(s_captionWidth, "Unknown frames");
+				std::cout << makeAlignedCaption(s_captionWidth, "Unknown frames");
 				for_each(unknown_frames.begin(), unknown_frames.end(), [](auto& str)
 				{
 					std::cout << " " << str;

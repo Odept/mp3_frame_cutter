@@ -28,13 +28,13 @@ public:
 	virtual std::shared_ptr<Tag::IAPE>		tagAPE			() const = 0;
 	virtual std::shared_ptr<Tag::ILyrics>	tagLyrics		() const = 0;
 
+	virtual bool							hasIssues		() const = 0;
+
 	virtual unsigned						mpegStreamOffset() const = 0;
 	virtual unsigned						tagID3v1Offset	() const = 0;
 	virtual unsigned						tagID3v2Offset	() const = 0;
 	virtual unsigned						tagAPEOffset	() const = 0;
 	virtual unsigned						tagLyricsOffset	() const = 0;
-
-	virtual bool							hasWarnings		() const = 0;
 
 	virtual bool							serialize		(const std::string& f_path) = 0;
 

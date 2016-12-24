@@ -61,6 +61,8 @@ namespace Tag
 		static std::shared_ptr<IID3v2>	create	();
 
 	public:
+		virtual bool				hasIssues			() const										= 0;
+
 		virtual size_t				getSize				() const										= 0;
 
 		virtual unsigned			getMinorVersion		() const										= 0;
