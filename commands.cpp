@@ -8,6 +8,7 @@
 
 
 // ====================================
+// find test -name "*.mp3" -print0 | xargs -0 -I{} ./mp3_cut -i mpeg {}
 static const uint s_captionWidth = 16;
 
 using tag_frame_count_getter_t  = unsigned              (Tag::IID3v2::*)() const;
@@ -264,28 +265,45 @@ bool CmdHelp::exec() const
 	LOG("	" << B(s_name) << " - cut an MP3 file without reencoding");
 	LOG("");
 	LOG( B("SYNOPSIS") );
-	LOG("	" << B(s_name) << ' ' << B("-[cit]") << ' ' << U("file"));
+	LOG("	" << B(s_name) <<
+		" [" << B("-fh") << ']' <<
+		" [" << B("-c") << ' ' << U("frame") << ' ' << U("count") << ']' <<
+		" [" << B("-C") << ' ' << U("begin") << ' ' << U("end") << ']' <<
+		" [" << B("-i") << " [mpeg id3v1 id3v2 ape lyrics]]" <<
+		" [" << B("-o") << ' ' << U("file") << ']' <<
+		" [" << B("-t") << ' ' << U("count") << ']' <<
+		' ' << U("file"));
 	LOG("");
 	LOG( B("DESCRIPTION") );
 	LOG("	The " << B(s_name) << " utility prints information about MPEG data stream, ID3v1, ID3v2, APE and Lyrics tags of an MP3 file, and cuts the MP3 file on a per-frame basis without reencoding.");
 	LOG("");
 	LOG("The following options are available:");
 	LOG("");
-	LOG(B("-c") << " [" << U("frame") << "] " << U("count"));
-	LOG("	Cut (erases) " << U("count") << " frames of the MPEG stream starting with the " << U("frame") << ". Cut " << U("count") << " leading frames if the " << U("frame") << " is not specified. The " << U("frame") << " is zero-based.");
+	// c
+	LOG(B("-c") << ' ' << U("frame") << ' ' << U("count"));
+	LOG("	Cut (erase) " << U("count") << " frames starting from the " << U("frame") << ". The " << U("frame") << " is zero-based.");
 	LOG("");
+	// C
+	LOG(B("-C") << ' ' << U("begin") << ' ' << U("end"));
+	LOG("	Cut (erase) frames between the " << U("begin") << " second inclusively and the " << U("end") << " second exclusively.");
+	LOG("");
+	// f
 	LOG(B("-f"));
 	LOG("	Force file overwrite. An input " << U("file") << " is overwritten if " << U("-o") << " is not specified.");
 	LOG("");
+	// h
 	LOG(B("-h"));
 	LOG("	Print help.");
 	LOG("");
-	LOG(B("-i") << " [" << U("mpeg") << ' ' << U("id3v1") << ' ' << U("id3v2") << ' ' <<  U("ape") << ' ' << U("lyrics") << "]");
+	// i
+	LOG(B("-i") << " [mpeg id3v1 id3v2 ape lyrics]");
 	LOG("	Print metadata information.");
 	LOG("");
+	// o
 	LOG(B("-o") << ' ' << U("file"));
 	LOG("	Write a result of processing to " << U("file") << ". A corresponding output file is overwritten if " << U("-f") << " is specified.");
 	LOG("");
+	// t
 	LOG(B("-t") << ' ' << U("count"));
 	LOG("	Cut " << U("count") << " trailing frames (truncate).");
 
