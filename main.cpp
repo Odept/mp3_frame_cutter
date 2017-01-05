@@ -42,6 +42,61 @@ static std::unique_ptr<Command> parseInfoArgs(const std::string& f_pathIn, uint 
 }
 
 
+static std::unique_ptr<Command> parseCutFramesArgs(const std::string& f_pathIn, uint f_nArgs, const char* f_args[], uint& f_ioCurArg)
+{
+	if(f_pathIn.empty())
+	{
+		ERROR("no input file specified");
+		return nullptr;
+	}
+
+	try
+	{
+		uint frame, count;
+		size_t errIndex;
+
+		// Start frame
+		if(++f_ioCurArg >= f_nArgs)
+		{
+			ERROR("no frame to start cutting from is specified");
+			return nullptr;
+		}
+		auto iFrame = std::stol(f_args[f_ioCurArg], &errIndex, 0);
+		if(iFrame < 0)
+			throw std::out_of_range("the start frame number can't be negative");
+		if(char c = f_args[f_ioCurArg][errIndex])
+			throw std::invalid_argument(std::string("unexpected character '") + std::string(1, c) + "'");
+		frame = iFrame;
+
+		// Frames count
+		if(++f_ioCurArg >= f_nArgs)
+		{
+			ERROR("no number of frames to cut is specified");
+			return nullptr;
+		}
+		auto iCount = std::stol(f_args[f_ioCurArg], &errIndex, 0);
+		if(iCount <= 0)
+			throw std::out_of_range("the number of frames to cut must be greater than zero");
+		if(char c = f_args[f_ioCurArg][errIndex])
+			throw std::invalid_argument(std::string("unexpected character '") + std::string(1, c) + "'");
+		count = iCount;
+
+		++f_ioCurArg;
+		return std::make_unique<CmdCutFrames>(f_pathIn, frame, count);
+	}
+	catch(const std::invalid_argument& e)
+	{
+		ERROR("the value \"" << f_args[f_ioCurArg] << "\" is invalid (" << e.what() << ')');
+	}
+	catch(const std::out_of_range& e)
+	{
+		ERROR("the value \"" << f_args[f_ioCurArg] << "\" is out of bounds (" << e.what() << ')');
+	}
+
+	return nullptr;
+}
+
+
 static std::unique_ptr<const Command> invalidOp(const std::string& f_op)
 {
 	ERROR("unexpected option \"" << f_op << '"');
@@ -69,16 +124,25 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 	{
 		std::string cmd(f_args[i], strnlen(f_args[i], 3));
 
-		if(cmd == "-h")
+		if(cmd == "-f")
+		{
+			bOverwrite = true;
+			++i;
+			continue;
+		}
+		else if(cmd == "-h")
 		{
 			if(sp)
 				return invalidOp(cmd);
 			return std::make_unique<CmdHelp>();
 		}
-		else if(cmd == "-f")
+		else if(cmd == "-c")
 		{
-			bOverwrite = true;
-			++i;
+			if(sp)
+				return invalidOp(cmd);
+			sp = parseCutFramesArgs(fileIn, nArgs, f_args, i);
+			if(!sp)
+				return nullptr;
 			continue;
 		}
 		else if(cmd == "-i")

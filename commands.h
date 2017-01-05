@@ -46,10 +46,31 @@ public:
 	};
 
 public:
-	CmdInfo(const std::string& f_pathIn, FieldsMask f_fields): Command(f_pathIn), m_fields(f_fields) {}
+	CmdInfo(const std::string& f_pathIn, FieldsMask f_fields):
+		Command(f_pathIn),
+		m_fields(f_fields)
+	{}
 
 	bool exec() const final override;
 
 private:
 	FieldsMask m_fields;
 };
+
+
+class CmdCutFrames final : public Command
+{
+public:
+	CmdCutFrames(const std::string& f_pathIn, unsigned f_frame, unsigned f_count):
+		Command(f_pathIn),
+		m_frame(f_frame),
+		m_count(f_count)
+	{}
+
+	bool exec() const final override;
+
+private:
+	unsigned m_frame;
+	unsigned m_count;
+};
+

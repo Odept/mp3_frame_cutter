@@ -258,6 +258,12 @@ static void printFrames(const std::string& f_name, const Tag::IID3v2& f_tag, tag
 }
 
 // ====================================
+bool CmdCutFrames::exec() const
+{
+	return false;
+}
+
+// ====================================
 bool CmdHelp::exec() const
 {
 	static const char* s_name = "mp3_cut";
