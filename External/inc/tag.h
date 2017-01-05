@@ -21,8 +21,8 @@ namespace Tag
 	{
 	public:
 		static size_t					size	();
-		static size_t					getSize	(const unsigned char* f_data, size_t f_size);
-		static std::shared_ptr<IID3v1>	create	(const unsigned char* f_data, size_t f_size);
+		static size_t					getSize	(const unsigned char* f_data, size_t f_offset, size_t f_size);
+		static std::shared_ptr<IID3v1>	create	(const unsigned char* f_data, size_t f_offset, size_t f_size);
 		static std::shared_ptr<IID3v1>	create	();
 
 	public:
@@ -56,8 +56,8 @@ namespace Tag
 	class IID3v2 : public ISerialize
 	{
 	public:
-		static size_t					getSize	(const unsigned char* f_data, size_t f_size);
-		static std::shared_ptr<IID3v2>	create	(const unsigned char* f_data, size_t f_size);
+		static size_t					getSize	(const unsigned char* f_data, size_t f_offset, size_t f_size);
+		static std::shared_ptr<IID3v2>	create	(const unsigned char* f_data, size_t f_offset, size_t f_size);
 		static std::shared_ptr<IID3v2>	create	();
 
 	public:
@@ -151,8 +151,9 @@ namespace Tag
 	class IAPE : public ISerialize
 	{
 	public:
-		static size_t					getSize	(const unsigned char* f_data, size_t f_size);
-		static std::shared_ptr<IAPE>	create	(const unsigned char* f_data, size_t f_size);
+		// Returns "negative" size when called for a valid footer
+		static size_t					getSize	(const unsigned char* f_data, size_t f_offset, size_t f_size);
+		static std::shared_ptr<IAPE>	create	(const unsigned char* f_data, size_t f_offset, size_t f_size);
 
 		virtual size_t					getSize	() const	= 0;
 	};
@@ -161,8 +162,8 @@ namespace Tag
 	class ILyrics : public ISerialize
 	{
 	public:
-		static size_t					getSize	(const unsigned char* f_data, size_t f_size);
-		static std::shared_ptr<ILyrics>	create	(const unsigned char* f_data, size_t f_size);
+		static size_t					getSize	(const unsigned char* f_data, size_t f_offset, size_t f_size);
+		static std::shared_ptr<ILyrics>	create	(const unsigned char* f_data, size_t f_offset, size_t f_size);
 
 		virtual size_t					getSize	() const	= 0;
 	};
