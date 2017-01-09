@@ -263,7 +263,68 @@ static void printFrames(const std::string& f_name, const Tag::IID3v2& f_tag, tag
 // ====================================
 bool CmdCutFrames::exec() const
 {
-	return false;
+	std::shared_ptr<IMP3> mp3;
+	try
+	{
+		mp3 = IMP3::create(m_pathIn);
+	}
+	catch(IMP3::exception& e)
+	{
+		ERROR(e.what());
+		return false;
+	}
+	if(mp3->hasIssues())
+	{
+		if(m_force)
+			WARNING("the \"" << m_pathIn << "\" has issues");
+		else
+		{
+			ERROR("the \"" << m_pathIn << "\" has issues - specify \"-f\" option to override");
+			return false;
+		}
+	}
+
+	VERBOSE("Cutting out " << m_count << " frames starting from the frame #" << m_frame <<
+			" from the \"" << m_pathIn << '"');
+
+	try
+	{
+		auto nCut = mp3->mpegStream()->cut(m_frame, m_count);
+		ASSERT(nCut <= m_count);
+		if(!nCut)
+		{
+			ERROR("no frames has been cut out");
+			return false;
+		}
+		if(nCut < m_count)
+			WARNING("the actual number of frames cut out (" << nCut << ") is less than requested");
+	}
+	catch(const std::out_of_range& e)
+	{
+		ERROR(e.what());
+		return false;
+	}
+
+	// Serialize
+	auto pathOut = m_pathOut.empty() ? m_pathIn : m_pathOut;
+	if(!m_force && (pathOut == m_pathIn))
+	{
+		ERROR("trying to overwrite the input file - either specify \"-f\" option to force overwrite or \"-o <file>\" to specify an output file");
+		return false;
+	}
+
+	try
+	{
+		mp3->serialize(pathOut);
+		VERBOSE("File \"" << pathOut << "\" sucsessfully " << ((pathOut == m_pathIn) ? "overwritten" : "created"));
+	}
+	catch(IMP3::exception& e)
+	{
+		ERROR(e.what());
+		return false;
+	}
+
+	return true;
 }
 
 // ====================================
