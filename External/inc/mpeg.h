@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 
 namespace MPEG
@@ -48,23 +49,26 @@ namespace MPEG
 		virtual bool			hasIssues		() const = 0;
 
 		virtual size_t			getSize			() const = 0;
-		virtual unsigned int	getFrameCount	() const = 0;
+		virtual unsigned		getFrameCount	() const = 0;
 		virtual float			getLength		() const = 0;
 
 		virtual Version			getVersion		() const = 0;
-		virtual unsigned int	getLayer		() const = 0;
-		virtual unsigned int	getBitrate		() const = 0;
+		virtual unsigned		getLayer		() const = 0;
+		virtual unsigned		getBitrate		() const = 0;
 		virtual bool			isVBR			() const = 0;
-		virtual unsigned int	getSamplingRate	() const = 0;
+		virtual unsigned		getSamplingRate	() const = 0;
 		virtual ChannelMode		getChannelMode	() const = 0;
 		virtual Emphasis		getEmphasis		() const = 0;
 
-		virtual size_t			getFrameOffset	(unsigned int f_index) const = 0;
-		virtual unsigned int	getFrameSize	(unsigned int f_index) const = 0;
-		virtual float			getFrameTime	(unsigned int f_index) const = 0;
+		virtual size_t			getFrameOffset	(unsigned f_index) const = 0;
+		virtual unsigned		getFrameSize	(unsigned f_index) const = 0;
+		virtual float			getFrameTime	(unsigned f_index) const = 0;
 
-		// returns the number of deleted frames
-		virtual unsigned int	truncate		(unsigned int f_frames) = 0;
+		virtual void			serialize		(std::vector<unsigned char>& f_outStream) = 0;
+
+		// Return the number of processed frames
+		virtual unsigned		cut				(unsigned f_frame, unsigned f_count) = 0;
+		virtual unsigned		truncate		(unsigned f_frames) = 0;
 
 		virtual					~IStream		();
 	};
