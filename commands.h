@@ -9,7 +9,6 @@ class Command
 {
 public:
 	explicit Command() = default;
-	Command(const std::string& f_pathIn): m_pathIn(f_pathIn) {}
 	virtual ~Command() {}
 
 	void suppressWarnings() { m_force = true; }
@@ -17,8 +16,6 @@ public:
 	virtual bool exec() const = 0;
 
 protected:
-	std::string m_pathIn;
-	std::string m_pathOut;
 	bool m_force;
 };
 
@@ -47,22 +44,25 @@ public:
 
 public:
 	CmdInfo(const std::string& f_pathIn, FieldsMask f_fields):
-		Command(f_pathIn),
+		m_pathIn(f_pathIn),
 		m_fields(f_fields)
 	{}
 
 	bool exec() const final override;
 
 private:
-	FieldsMask m_fields;
+	std::string	m_pathIn;
+	FieldsMask	m_fields;
 };
 
 
 class CmdCutFrames final : public Command
 {
 public:
-	CmdCutFrames(const std::string& f_pathIn, unsigned f_frame, unsigned f_count):
-		Command(f_pathIn),
+	CmdCutFrames(const std::string& f_pathIn, const std::string& f_pathOut,
+				 unsigned f_frame, unsigned f_count):
+		m_pathIn(f_pathIn),
+		m_pathOut(f_pathOut),
 		m_frame(f_frame),
 		m_count(f_count)
 	{}
@@ -70,7 +70,10 @@ public:
 	bool exec() const final override;
 
 private:
-	unsigned m_frame;
-	unsigned m_count;
+	std::string	m_pathIn;
+	std::string	m_pathOut;
+
+	unsigned	m_frame;
+	unsigned	m_count;
 };
 

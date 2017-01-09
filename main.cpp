@@ -10,7 +10,9 @@ static T orEnums(T f_e0, T f_e1)
 }
 
 
-static std::unique_ptr<Command> parseInfoArgs(const std::string& f_pathIn, uint f_nArgs, const char* f_args[], uint& f_ioCurArg)
+static std::unique_ptr<Command> parseInfoArgs(const std::string& f_pathIn,
+											  const char* f_args[], uint f_nArgs,
+											  uint& f_ioCurArg)
 {
 	if(f_pathIn.empty())
 	{
@@ -22,7 +24,7 @@ static std::unique_ptr<Command> parseInfoArgs(const std::string& f_pathIn, uint 
 
 	for(++f_ioCurArg; f_ioCurArg < f_nArgs; ++f_ioCurArg)
 	{
-		std::string opt(f_args[f_ioCurArg], strnlen(f_args[f_ioCurArg], 16));
+		std::string opt(f_args[f_ioCurArg]);
 
 		if(opt == "mpeg")
 			mask = orEnums(mask, CmdInfo::FieldsMask::MPEG);
@@ -42,7 +44,9 @@ static std::unique_ptr<Command> parseInfoArgs(const std::string& f_pathIn, uint 
 }
 
 
-static std::unique_ptr<Command> parseCutFramesArgs(const std::string& f_pathIn, uint f_nArgs, const char* f_args[], uint& f_ioCurArg)
+static std::unique_ptr<Command> parseCutFramesArgs(const std::string& f_pathIn, const std::string& f_pathOut,
+												   const char* f_args[], uint f_nArgs,
+												   uint& f_ioCurArg)
 {
 	if(f_pathIn.empty())
 	{
@@ -82,7 +86,7 @@ static std::unique_ptr<Command> parseCutFramesArgs(const std::string& f_pathIn, 
 		count = iCount;
 
 		++f_ioCurArg;
-		return std::make_unique<CmdCutFrames>(f_pathIn, frame, count);
+		return std::make_unique<CmdCutFrames>(f_pathIn, f_pathOut, frame, count);
 	}
 	catch(const std::invalid_argument& e)
 	{
@@ -94,6 +98,42 @@ static std::unique_ptr<Command> parseCutFramesArgs(const std::string& f_pathIn, 
 	}
 
 	return nullptr;
+}
+
+
+static bool parseOutArgs(const char* f_args[], uint f_nArgs, std::string& f_outPathOut)
+{
+	std::string pathOut;
+
+	for(uint i = 0; i < f_nArgs; ++i)
+	{
+		std::string cmd(f_args[i]);
+		if(cmd != "-o")
+			continue;
+
+		if(!pathOut.empty())
+		{
+			ERROR("multiple \"-o\" options");
+			return false;
+		}
+
+		if(++i >= f_nArgs)
+		{
+			ERROR("no output file path is specified");
+			return false;
+		}
+		auto arg = f_args[i];
+
+		if(arg[0] == '-')
+		{
+			ERROR("output file path is expected");
+			return false;
+		}
+		pathOut = arg;
+	}
+
+	f_outPathOut = pathOut;
+	return true;
 }
 
 
@@ -117,12 +157,16 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 		fileIn = f_args[nArgs];
 	}
 
+	std::string fileOut;
+	if( !parseOutArgs(f_args, nArgs, fileOut) )
+		return nullptr;
+
 	std::unique_ptr<Command> sp;
 	bool bForce = false;
 
 	for(uint i = 0; i < nArgs;)
 	{
-		std::string cmd(f_args[i], strnlen(f_args[i], 3));
+		std::string cmd(f_args[i]);
 
 		if(cmd == "-f")
 		{
@@ -136,11 +180,18 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 				return invalidOp(cmd);
 			return std::make_unique<CmdHelp>();
 		}
+		else if(cmd == "-o")
+		{
+			// "-o" is pre-parsed in the beginning of the function
+			ASSERT(!fileOut.empty());
+			i += 2;
+			continue;
+		}
 		else if(cmd == "-c")
 		{
 			if(sp)
 				return invalidOp(cmd);
-			sp = parseCutFramesArgs(fileIn, nArgs, f_args, i);
+			sp = parseCutFramesArgs(fileIn, fileOut, f_args, nArgs, i);
 			if(!sp)
 				return nullptr;
 			continue;
@@ -149,16 +200,11 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 		{
 			if(sp)
 				return invalidOp(cmd);
-			sp = parseInfoArgs(fileIn, nArgs, f_args, i);
+			sp = parseInfoArgs(fileIn, f_args, nArgs, i);
 			if(!sp)
 				return nullptr;
 			continue;
 		}
-		//, return std::make_unique<CmdInfo>();
-		//else if(cmd == "-t")
-		//	return std::make_unique<CmdInfo>();
-		//else if(cmd == "-c")
-		//	return std::make_unique<CmdInfo>();
 
 		return invalidOp(cmd);
 	}
