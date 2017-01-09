@@ -295,7 +295,7 @@ bool CmdHelp::exec() const
 	LOG("");
 	// f
 	LOG(B("-f"));
-	LOG("	Force file overwrite. An input " << U("file") << " is overwritten if " << U("-o") << " is not specified.");
+	LOG("	Force processing in case of warnings. With this option an input " << U("file") << " is overwritten if " << U("-o") << " is not specified.");
 	LOG("");
 	// h
 	LOG(B("-h"));

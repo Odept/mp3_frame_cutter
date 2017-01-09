@@ -76,7 +76,7 @@ static std::unique_ptr<Command> parseCutFramesArgs(const std::string& f_pathIn, 
 		}
 		auto iCount = std::stol(f_args[f_ioCurArg], &errIndex, 0);
 		if(iCount <= 0)
-			throw std::out_of_range("the number of frames to cut must be greater than zero");
+			throw std::out_of_range("a number of frames to cut must be greater than zero");
 		if(char c = f_args[f_ioCurArg][errIndex])
 			throw std::invalid_argument(std::string("unexpected character '") + std::string(1, c) + "'");
 		count = iCount;
@@ -118,7 +118,7 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 	}
 
 	std::unique_ptr<Command> sp;
-	bool bOverwrite = false;
+	bool bForce = false;
 
 	for(uint i = 0; i < nArgs;)
 	{
@@ -126,7 +126,7 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 
 		if(cmd == "-f")
 		{
-			bOverwrite = true;
+			bForce = true;
 			++i;
 			continue;
 		}
@@ -169,8 +169,8 @@ static std::unique_ptr<const Command> parseArgs(uint f_nArgs, const char* f_args
 		return nullptr;
 	}
 
-	if(bOverwrite)
-		sp->allowOverwrite();
+	if(bForce)
+		sp->suppressWarnings();
 
 	return std::move(sp);
 }

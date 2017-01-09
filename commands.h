@@ -12,14 +12,14 @@ public:
 	Command(const std::string& f_pathIn): m_pathIn(f_pathIn) {}
 	virtual ~Command() {}
 
-	void allowOverwrite() { m_overwrite = true; }
+	void suppressWarnings() { m_force = true; }
 
 	virtual bool exec() const = 0;
 
 protected:
 	std::string m_pathIn;
 	std::string m_pathOut;
-	bool m_overwrite;
+	bool m_force;
 };
 
 
