@@ -7,6 +7,10 @@
 #include "common.h"
 
 
+static bool g_verbose = true;
+#define VERBOSE(msg) if(g_verbose) LOG(msg)
+
+
 // ====================================
 // find test -name "*.mp3" -print0 | xargs -0 -I{} ./mp3_cut -i mpeg {}
 static const uint s_captionWidth = 16;
@@ -25,7 +29,7 @@ bool CmdInfo::exec() const
 	std::shared_ptr<IMP3> mp3;
 	try
 	{
-LOG(std::endl << ">>> " << m_pathIn);
+		VERBOSE("Outputting info for \"" << m_pathIn << '"');
 		mp3 = IMP3::create(m_pathIn);
 	}
 	catch(IMP3::exception& e)
@@ -37,7 +41,6 @@ LOG(std::endl << ">>> " << m_pathIn);
 	//{
 	//	return false;
 	//}
-
 	if(mp3->hasIssues())
 		WARNING("the \"" << m_pathIn << "\" has issues");
 

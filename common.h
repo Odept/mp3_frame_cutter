@@ -8,8 +8,8 @@
 #define U(msg)			"\033[4m" << msg << "\033[0m"
 #define LOG(msg)		std::cout << msg << std::endl
 
-#define WARNING(msg)	std::cerr << "WARNING: " << msg << std::endl
-#define ERROR(msg)		std::cerr << "ERROR: " << msg << std::endl
+#define WARNING(msg)	LOG("WARNING: " << msg)
+#define ERROR(msg)		LOG("ERROR: " << msg)
 
 #define OUT_HEX(num)    std::hex << (num) << std::dec
 
