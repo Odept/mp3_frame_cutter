@@ -181,7 +181,7 @@ int main(int argc, const char* args[])
 	auto cmd = parseArgs(argc - 1, &args[1]);
 	if(!cmd)
 		return 2;
-	if( cmd->exec() )
+	if( !cmd->exec() )
 		return 1;
 
 	return 0;
